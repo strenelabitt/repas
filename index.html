@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Repas Intelligent</title>
+    <style>
+        :root {
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --bg-tertiary: #2d2d2d;
+            --bg-input: #3d3d3d;
+            --accent-primary: #bb86fc;
+            --accent-hover: #a174e8;
+            --text-primary: #e0e0e0;
+            --error: #cf6679;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            text-align: center;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .container {
+            background-color: var(--bg-secondary);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        button {
+            background-color: var(--accent-primary);
+            color: #000000;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: background-color 0.3s;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .tab-button {
+            background-color: var(--bg-input);
+            color: var(--text-primary);
+        }
+
+        .tab-button.active {
+            background-color: var(--accent-primary);
+            color: #000000;
+        }
+
+        #mealResult {
+            margin: 20px;
+            padding: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--accent-primary);
+            min-height: 100px;
+            background-color: var(--bg-tertiary);
+            border-radius: 10px;
+        }
+
+        h1, h2, h3 {
+            color: var(--accent-primary);
+            margin-bottom: 20px;
+        }
+
+        .ingredients-panel {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: var(--bg-tertiary);
+            border-radius: 10px;
+            text-align: left;
+        }
+
+        .ingredient-category {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+        }
+
+        .ingredient-item {
+            display: inline-block;
+            margin: 5px;
+        }
+
+        .ingredient-checkbox {
+            display: none;
+        }
+
+        .ingredient-label {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: var(--bg-input);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .ingredient-checkbox:checked + .ingredient-label {
+            background-color: var(--accent-primary);
+            color: #000000;
+        }
+
+        .recipe-details {
+            text-align: left;
+            margin-top: 20px;
+            padding: 20px;
+            background-color: var(--bg-tertiary);
+            border-radius: 10px;
+            display: none;
+        }
+
+        .recipe-details.visible {
+            display: block;
+        }
+
+        .missing-ingredients {
+            color: var(--error);
+        }
+
+        .match-percentage {
+            font-size: 0.9em;
+            color: var(--accent-primary);
+            margin-top: 10px;
+            padding: 10px;
+            background-color: var(--bg-secondary);
+            border-radius: 5px;
+            display: inline-block;
+        }
+
+        .filters {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: var(--bg-tertiary);
+            border-radius: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .filter-button {
+            padding: 8px 16px;
+            margin: 5px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+                margin: 10px;
+            }
+            
+            button {
+                width: 100%;
+                margin: 5px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍽️ Générateur de Repas Intelligent</h1>
+        
+        <div class="mode-selection">
+            <button class="tab-button active" onclick="switchMode('random', event)">Mode Aléatoire</button>
+            <button class="tab-button" onclick="switchMode('ingredients', event)">Mode Ingrédients</button>
+        </div>
+
+        <div class="filters">
+            <button class="filter-button active" onclick="toggleFilter('all', event)">Tous les plats</button>
+            <button class="filter-button" onclick="toggleFilter('quick', event)">Rapide</button>
+            <button class="filter-button" onclick="toggleFilter('vegetarian', event)">Végétarien</button>
+            <button class="filter-button" onclick="toggleFilter('meat', event)">Viandes</button>
+            <button class="filter-button" onclick="toggleFilter('fish', event)">Poissons</button>
+            <button class="filter-button" onclick="toggleFilter('pasta', event)">Pâtes</button>
+            <button class="filter-button" onclick="toggleFilter('asian', event)">Asiatique</button>
+            <button class="filter-button" onclick="toggleFilter('healthy', event)">Healthy</button>
+        </div>
+
+        <div id="randomMode">
+            <button onclick="generateRandomMeal()">Générer un repas aléatoire</button>
+        </div>
+
+        <div id="ingredientsMode" style="display: none;">
+            <div class="ingredients-panel">
+                <h3>🔍 Sélectionnez vos ingrédients disponibles :</h3>
+                <div id="ingredientsList"></div>
+            </div>
+            <button onclick="generateMealFromIngredients()">Trouver un repas possible</button>
+        </div>
+
+        <div id="mealResult">Cliquez sur un bouton pour obtenir une suggestion</div>
+        
+        <div id="recipeDetails" class="recipe-details">
+            <h3>📝 Détails de la recette :</h3>
+            <div id="recipeIngredients"></div>
+            <div id="recipeInstructions"></div>
+        </div>
+    </div>
+<script>
+        let currentMode = 'random';
+        let currentFilter = 'all';
+
+        const recipes = [
+            // Plats de pâtes
+            {
+                name: "Pâtes Carbonara",
+                ingredients: ["pates", "lardons", "oeufs", "parmesan"],
+                instructions: "1. Faire cuire les pâtes al dente\n2. Faire revenir les lardons\n3. Mélanger les œufs et le parmesan\n4. Assembler en ajoutant un peu d'eau de cuisson",
+                category: ["pasta", "quick"]
+            },
+            {
+                name: "Pâtes à la Bolognaise",
+                ingredients: ["pates", "viande_hachee", "oignons", "tomates", "carottes", "ail"],
+                instructions: "1. Préparer la sauce bolognaise\n2. Faire revenir les légumes\n3. Ajouter la viande\n4. Mijoter 30 minutes\n5. Servir sur les pâtes",
+                category: ["pasta"]
+            },
+            {
+                name: "Lasagnes Végétariennes",
+                ingredients: ["pates_lasagne", "courgettes", "aubergines", "tomates", "bechamel", "mozzarella"],
+                instructions: "1. Préparer les légumes\n2. Faire la sauce\n3. Monter les lasagnes\n4. Cuire 45 minutes",
+                category: ["pasta", "vegetarian"]
+            },
+            {
+                name: "Pennes aux Crevettes",
+                ingredients: ["pates", "crevettes", "ail", "creme", "citron", "persil"],
+                instructions: "1. Cuire les pâtes\n2. Faire revenir les crevettes\n3. Crémer\n4. Assembler",
+                category: ["pasta", "fish", "quick"]
+            },
+            // Plats asiatiques
+            {
+                name: "Pad Thai",
+                ingredients: ["nouilles_riz", "crevettes", "sauce_soja", "cacahuetes", "germes_soja", "citron_vert"],
+                instructions: "1. Préparer les nouilles\n2. Faire sauter les ingrédients\n3. Ajouter la sauce\n4. Garnir",
+                category: ["asian", "fish"]
+            },
+            {
+                name: "Ramen au Porc",
+                ingredients: ["nouilles_ramen", "porc", "oeuf", "oignons_verts", "bouillon", "champignons_noirs"],
+                instructions: "1. Préparer le bouillon\n2. Cuire le porc\n3. Assembler le bol\n4. Ajouter les garnitures",
+                category: ["asian"]
+            },
+            {
+                name: "Riz Frit Végétarien",
+                ingredients: ["riz", "tofu", "petits_pois", "carottes", "sauce_soja", "oeufs"],
+                instructions: "1. Cuire le riz\n2. Faire revenir les légumes\n3. Ajouter le tofu\n4. Mélanger",
+                category: ["asian", "vegetarian", "quick"]
+            },
+            // Plats de viande
+            {
+                name: "Poulet Basquaise",
+                ingredients: ["poulet", "poivrons", "tomates", "oignons", "ail", "riz"],
+                instructions: "1. Faire revenir le poulet\n2. Ajouter les légumes\n3. Mijoter\n4. Servir avec du riz",
+                category: ["meat"]
+            },
+            {
+                name: "Boeuf Bourguignon",
+                ingredients: ["boeuf", "carottes", "oignons", "vin_rouge", "champignons", "lardons"],
+                instructions: "1. Faire revenir la viande\n2. Ajouter les légumes\n3. Mouiller au vin\n4. Mijoter longuement",
+                category: ["meat"]
+            },
+            // Poissons
+            {
+                name: "Saumon en Croûte d'Herbes",
+                ingredients: ["saumon", "herbes", "chapelure", "moutarde", "pommes_de_terre"],
+                instructions: "1. Préparer la croûte\n2. Enrober le saumon\n3. Cuire au four\n4. Servir",
+                category: ["fish"]
+            },
+            {
+                name: "Thon à la Provençale",
+                ingredients: ["thon", "tomates", "olives", "herbes_provence", "ail"],
+                instructions: "1. Saisir le thon\n2. Préparer la sauce\n3. Mijoter\n4. Servir",
+                category: ["fish", "quick"]
+            },
+            // Plats végétariens
+            {
+                name: "Buddha Bowl Quinoa",
+                ingredients: ["quinoa", "pois_chiches", "avocat", "patate_douce", "epinards", "graines"],
+                instructions: "1. Cuire le quinoa\n2. Rôtir les légumes\n3. Assembler\n4. Garnir",
+                category: ["vegetarian", "healthy"]
+            },
+            {
+                name: "Curry de Lentilles",
+                ingredients: ["lentilles", "lait_coco", "curry", "oignons", "carottes", "epinards"],
+                instructions: "1. Cuire les lentilles\n2. Préparer la sauce\n3. Ajouter les légumes\n4. Mijoter",
+                category: ["vegetarian", "healthy"]
+            }
+        ];
+
+        const ingredients = {
+            proteins: [
+                "poulet", "boeuf", "porc", "thon", "saumon", "crevettes", 
+                "tofu", "oeufs", "lentilles", "pois_chiches", "lardons",
+                "viande_hachee"
+            ],
+            starches: [
+                "riz", "pates", "quinoa", "pommes_de_terre", "patate_douce",
+                "nouilles_riz", "nouilles_ramen", "pates_lasagne"
+            ],
+            vegetables: [
+                "carottes", "oignons", "poivrons", "tomates", "courgettes",
+                "aubergines", "champignons", "epinards", "petits_pois",
+                "germes_soja", "oignons_verts", "ail", "avocat"
+            ],
+            dairy: [
+                "parmesan", "mozzarella", "creme", "bechamel", "fromage_rape",
+                "beurre"
+            ],
+            condiments: [
+                "sauce_soja", "curry", "lait_coco", "moutarde", "huile_olive",
+                "vin_rouge", "herbes", "herbes_provence", "citron", "citron_vert",
+                "olives", "cacahuetes", "graines"
+            ]
+        };
+
+        function switchMode(mode, event) {
+            currentMode = mode;
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+            
+            document.getElementById('randomMode').style.display = mode === 'random' ? 'block' : 'none';
+            document.getElementById('ingredientsMode').style.display = mode === 'ingredients' ? 'block' : 'none';
+            
+            hideRecipeDetails();
+        }
+
+        function toggleFilter(filter, event) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+        }
+
+        function generateRandomMeal() {
+            let availableRecipes = recipes;
+            
+            if (currentFilter !== 'all') {
+                availableRecipes = recipes.filter(recipe => 
+                    recipe.category.includes(currentFilter)
+                );
+            }
+
+            if (availableRecipes.length === 0) {
+                document.getElementById('mealResult').textContent = 
+                    "Aucune recette ne correspond aux filtres sélectionnés";
+                hideRecipeDetails();
+                return;
+            }
+
+            const randomIndex = Math.floor(Math.random() * availableRecipes.length);
+            displayRecipe(availableRecipes[randomIndex]);
+        }
+
+        function generateMealFromIngredients() {
+            const availableIngredients = getSelectedIngredients();
+            if (availableIngredients.length === 0) {
+                document.getElementById('mealResult').textContent = 
+                    "Sélectionnez d'abord quelques ingrédients 🙂";
+                hideRecipeDetails();
+                return;
+            }
+
+            let availableRecipes = recipes;
+            if (currentFilter !== 'all') {
+                availableRecipes = recipes.filter(recipe => 
+                    recipe.category.includes(currentFilter)
+                );
+            }
+
+            const possibleRecipes = availableRecipes.map(recipe => {
+                const matchingIngredients = recipe.ingredients.filter(ing => 
+                    availableIngredients.includes(ing)
+                );
+                const score = matchingIngredients.length / recipe.ingredients.length;
+                return { ...recipe, score, matchingCount: matchingIngredients.length };
+            }).filter(recipe => recipe.score >= 0.3);
+
+            if (possibleRecipes.length === 0) {
+                document.getElementById('mealResult').textContent = 
+                    "Aucune recette possible avec ces ingrédients 😕";
+                hideRecipeDetails();
+                return;
+            }
+
+            possibleRecipes.sort((a, b) => b.score - a.score);
+            const bestScore = possibleRecipes[0].score;
+            const bestRecipes = possibleRecipes.filter(recipe => 
+                recipe.score >= bestScore * 0.8
+            );
+            const selectedRecipe = bestRecipes[
+                Math.floor(Math.random() * bestRecipes.length)
+            ];
+            
+            displayRecipe(selectedRecipe, availableIngredients);
+        }
+
+        function displayRecipe(recipe, availableIngredients = null) {
+            document.getElementById('mealResult').textContent = recipe.name;
+            
+            const recipeDetails = document.getElementById('recipeDetails');
+            const recipeIngredients = document.getElementById('recipeIngredients');
+            const recipeInstructions = document.getElementById('recipeInstructions');
+            
+            let ingredientsHtml = "<h4>🛒 Ingrédients nécessaires :</h4><ul>";
+            
+            recipe.ingredients.forEach(ing => {
+                const isAvailable = !availableIngredients || availableIngredients.includes(ing);
+                const itemClass = isAvailable ? "" : "missing-ingredients";
+                ingredientsHtml += `<li class="${itemClass}">${formatIngredient(ing)}${isAvailable ? "": " (manquant)"}</li>`;
+            });
+            
+            ingredientsHtml += "</ul>";
+            
+            if (availableIngredients) {
+                const percentage = Math.round((recipe.matchingCount / recipe.ingredients.length) * 100);
+                ingredientsHtml += `<div class="match-percentage">✨ Correspondance avec vos ingrédients : ${percentage}%</div>`;
+            }
+            
+            recipeIngredients.innerHTML = ingredientsHtml;
+            recipeInstructions.innerHTML = "<h4>👩‍🍳 Instructions :</h4><p>" + 
+                recipe.instructions.split('\n').join('<br>') + 
+                "</p>";
+            
+            recipeDetails.classList.add('visible');
+        }
+
+        function hideRecipeDetails() {
+            document.getElementById('recipeDetails').classList.remove('visible');
+        }
+
+        function formatIngredient(ing) {
+            return ing.charAt(0).toUpperCase() + ing.slice(1).replace(/_/g, ' ');
+        }
+
+        function getSelectedIngredients() {
+            return Array.from(document.querySelectorAll('.ingredient-checkbox:checked'))
+                .map(cb => cb.value);
+        }
+
+        function createIngredientsList() {
+            const container = document.getElementById('ingredientsList');
+            
+            Object.entries(ingredients).forEach(([category, items]) => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'ingredient-category';
+                categoryDiv.innerHTML = `<h4>${formatIngredient(category)} :</h4>`;
+                
+                items.forEach(ingredient => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'ingredient-item';
+                    itemDiv.innerHTML = `
+                        <input type="checkbox" id="${ingredient}" value="${ingredient}" class="ingredient-checkbox">
+                        <label for="${ingredient}" class="ingredient-label">${formatIngredient(ingredient)}</label>
+                    `;
+                    categoryDiv.appendChild(itemDiv);
+                });
+                
+                container.appendChild(categoryDiv);
+            });
+        }
+
+        // Initialisation
+        createIngredientsList();
+    </script>
+</body>
+</html>
