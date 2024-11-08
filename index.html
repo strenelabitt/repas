@@ -2,303 +2,226 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Suggestions de Recettes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Repas</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 1000px;
-            margin: 0 auto;
+            max-width: 800px;
+            margin: 20px auto;
             padding: 20px;
-            background-color: #f5f5f5;
+            text-align: center;
+            background-color: #121212;
+            color: #e0e0e0;
         }
         .container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .search-section {
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        input, button, select {
-            padding: 10px;
-            margin: 5px;
-            font-size: 16px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
+            background-color: #1e1e1e;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
         button {
-            background-color: #4CAF50;
-            color: white;
+            background-color: #bb86fc;
+            color: #000000;
+            padding: 15px 30px;
             border: none;
+            border-radius: 5px;
             cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
             transition: background-color 0.3s;
         }
         button:hover {
-            background-color: #45a049;
+            background-color: #a174e8;
         }
-        button.remove {
-            background-color: #ff4444;
+        #mealResult {
+            margin: 20px;
+            padding: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #bb86fc;
+        }
+        .meal-history {
+            margin-top: 20px;
+            text-align: left;
+            padding: 10px;
+            background-color: #2d2d2d;
+            border-radius: 5px;
+        }
+        .meal-history h3 {
+            color: #bb86fc;
+        }
+        #historyList {
+            color: #e0e0e0;
+        }
+        h1, h2 {
+            color: #bb86fc;
+        }
+        .add-meal-form {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #2d2d2d;
+            border-radius: 5px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #3d3d3d;
+            color: #e0e0e0;
+            width: 60%;
+            max-width: 300px;
+        }
+        input[type="text"]:focus {
+            outline: 2px solid #bb86fc;
+        }
+        .meal-list {
+            margin-top: 20px;
+            text-align: left;
+            background-color: #2d2d2d;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .meal-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px;
+            margin: 5px 0;
+        }
+        .delete-btn {
+            background-color: #cf6679;
             padding: 5px 10px;
             font-size: 14px;
         }
-        button.remove:hover {
-            background-color: #cc0000;
+        .delete-btn:hover {
+            background-color: #b4424f;
         }
-        .error-message {
-            color: #ff0000;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ff0000;
-            border-radius: 4px;
-            display: none;
-        }
-        #results {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-        }
-        .recipe-card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            text-align: center;
-        }
-        .recipe-card img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 4px;
-        }
-        .loading {
-            text-align: center;
-            padding: 20px;
-            display: none;
-        }
-        .ingredients-section {
-            margin: 20px 0;
-            padding: 20px;
-            background-color: #f9f9f9;
-            border-radius: 8px;
-        }
-        .ingredients-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .ingredient-tag {
-            background-color: #e0e0e0;
-            padding: 5px 10px;
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .grid-container {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 20px;
-            margin-top: 20px;
-        }
-        .matching-info {
-            background-color: #e8f5e9;
-            padding: 10px;
-            border-radius: 4px;
-            margin-top: 10px;
+        .icon {
+            font-size: 2em;
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Découvrez de Nouvelles Recettes</h1>
+        <h1>Que manger ce soir ? 🍽️</h1>
+        <div class="icon">❓🍽️</div>
+        <button onclick="generateMeal()">Générer un repas</button>
+        <div id="mealResult">Cliquez sur le bouton pour obtenir une suggestion</div>
         
-        <div class="ingredients-section">
-            <h2>Mes Ingrédients Disponibles</h2>
-            <div>
-                <input type="text" id="new-ingredient" placeholder="Ajouter un ingrédient">
-                <button onclick="addIngredient()">Ajouter</button>
-            </div>
-            <div id="ingredients-list" class="ingredients-list">
-                <!-- Les ingrédients seront ajoutés ici -->
-            </div>
+        <div class="meal-history">
+            <h3>Dernières suggestions :</h3>
+            <ul id="historyList"></ul>
         </div>
 
-        <div class="search-section">
-            <input type="text" id="api-key" placeholder="69da3c6d5b7c46e18366c9e7997bbc14">
-            
-            <div class="filters">
-                <select id="cuisine">
-                    <option value="">Toutes les cuisines</option>
-                    <option value="french">Française</option>
-                    <option value="italian">Italienne</option>
-                    <option value="mediterranean">Méditerranéenne</option>
-                    <option value="asian">Asiatique</option>
-                </select>
-                
-                <select id="diet">
-                    <option value="">Tous les régimes</option>
-                    <option value="vegetarian">Végétarien</option>
-                    <option value="vegan">Végan</option>
-                    <option value="gluten-free">Sans gluten</option>
-                </select>
-            </div>
-            
-            <button onclick="searchRecipes()">Rechercher des recettes</button>
+        <div class="add-meal-form">
+            <h2>Ajouter un nouveau repas</h2>
+            <input type="text" id="newMeal" placeholder="Entrez un nouveau repas">
+            <button onclick="addMeal()">Ajouter</button>
         </div>
-        
-        <div id="error-message" class="error-message"></div>
-        <div id="loading" class="loading">Recherche de recettes en cours...</div>
-        <div id="results"></div>
+
+        <div class="meal-list">
+            <h2>Liste des repas disponibles</h2>
+            <div id="mealsList"></div>
+        </div>
     </div>
 
     <script>
-        // Gestionnaire des ingrédients
-        let ingredients = [];
+        let meals = [
+            "Pâtes carbonara",
+            "Poulet rôti et légumes",
+            "Quiche lorraine",
+            "Salade composée",
+            "Pizza maison",
+            "Soupe de légumes",
+            "Gratin dauphinois",
+            "Saumon grillé",
+            "Ratatouille",
+            "Couscous",
+            "Omelette aux champignons",
+            "Risotto aux légumes",
+            "Lasagnes",
+            "Curry de légumes",
+            "Burger maison",
+            "Tartine avocat-œuf",
+            "Wrap au poulet",
+            "Poisson en papillote",
+            "Bœuf bourguignon",
+            "Tarte aux légumes"
+        ];
 
-        // Charger les ingrédients sauvegardés
-        window.onload = function() {
-            const savedIngredients = localStorage.getItem('available-ingredients');
-            if (savedIngredients) {
-                ingredients = JSON.parse(savedIngredients);
-                updateIngredientsDisplay();
-            }
-            
-            // Charger la clé API sauvegardée
-            const savedApiKey = localStorage.getItem('spoonacular-api-key');
-            if (savedApiKey) {
-                document.getElementById('api-key').value = savedApiKey;
-            }
-        }
+        const history = [];
+        const maxHistory = 5;
 
-        function addIngredient() {
-            const input = document.getElementById('new-ingredient');
-            const ingredient = input.value.trim().toLowerCase();
-            
-            if (ingredient && !ingredients.includes(ingredient)) {
-                ingredients.push(ingredient);
-                localStorage.setItem('available-ingredients', JSON.stringify(ingredients));
-                updateIngredientsDisplay();
-                input.value = '';
-            }
-        }
-
-        function removeIngredient(index) {
-            ingredients.splice(index, 1);
-            localStorage.setItem('available-ingredients', JSON.stringify(ingredients));
-            updateIngredientsDisplay();
-        }
-
-        function updateIngredientsDisplay() {
-            const list = document.getElementById('ingredients-list');
-            list.innerHTML = '';
-            
-            ingredients.forEach((ingredient, index) => {
-                const tag = document.createElement('div');
-                tag.className = 'ingredient-tag';
-                tag.innerHTML = `
-                    ${ingredient}
-                    <button class="remove" onclick="removeIngredient(${index})">×</button>
-                `;
-                list.appendChild(tag);
-            });
-        }
-
-        // Gestionnaire de la touche Entrée pour l'ajout d'ingrédients
-        document.getElementById('new-ingredient').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                addIngredient();
-            }
-        });
-
-        async function searchRecipes() {
-            const apiKey = document.getElementById('api-key').value;
-            if (!apiKey) {
-                showError("Veuillez entrer votre clé API Spoonacular");
+        function generateMeal() {
+            if (meals.length === 0) {
+                document.getElementById('mealResult').textContent = "Ajoutez d'abord des repas à la liste !";
                 return;
             }
-
-            const cuisine = document.getElementById('cuisine').value;
-            const diet = document.getElementById('diet').value;
-            const loading = document.getElementById('loading');
-            const results = document.getElementById('results');
-            const errorMessage = document.getElementById('error-message');
+            const randomIndex = Math.floor(Math.random() * meals.length);
+            const meal = meals[randomIndex];
+            document.getElementById('mealResult').textContent = meal;
             
-            loading.style.display = 'block';
-            results.innerHTML = '';
-            errorMessage.style.display = 'none';
-            
-            try {
-                const params = new URLSearchParams({
-                    apiKey: apiKey,
-                    number: 9,
-                    addRecipeInformation: true,
-                    fillIngredients: true,
-                    includeIngredients: ingredients.join(',')
-                });
-                
-                if (cuisine) params.append('cuisine', cuisine);
-                if (diet) params.append('diet', diet);
-                
-                const response = await fetch(`https://api.spoonacular.com/recipes/complexSearch?${params}`);
-                
-                if (!response.ok) {
-                    throw new Error(`Erreur HTTP: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                
-                if (data.results && data.results.length > 0) {
-                    displayRecipes(data.results);
-                } else {
-                    showError("Aucune recette trouvée. Essayez avec d'autres ingrédients.");
-                }
-            } catch (error) {
-                console.error('Erreur:', error);
-                showError("Une erreur est survenue. Vérifiez votre clé API et votre connexion internet.");
-            } finally {
-                loading.style.display = 'none';
+            history.unshift(meal);
+            if (history.length > maxHistory) {
+                history.pop();
             }
-        }
-
-        function showError(message) {
-            const errorMessage = document.getElementById('error-message');
-            errorMessage.textContent = message;
-            errorMessage.style.display = 'block';
-        }
-
-        function displayRecipes(recipes) {
-            const results = document.getElementById('results');
             
-            recipes.forEach(recipe => {
-                const card = document.createElement('div');
-                card.className = 'recipe-card';
-                
-                // Calculer les ingrédients manquants
-                const recipeIngredients = recipe.usedIngredients.map(i => i.name);
-                const missingIngredients = recipe.missedIngredients.map(i => i.name);
-                
-                card.innerHTML = `
-                    <img src="${recipe.image}" alt="${recipe.title}" onerror="this.src='https://via.placeholder.com/300x200?text=Pas+d%27image'">
-                    <h3>${recipe.title}</h3>
-                    <p>Temps de préparation: ${recipe.readyInMinutes || 'Non spécifié'} minutes</p>
-                    <div class="matching-info">
-                        <p>Ingrédients disponibles utilisés: ${recipeIngredients.length}</p>
-                        <p>Ingrédients manquants: ${missingIngredients.length}</p>
-                    </div>
-                    <button onclick="window.open('${recipe.sourceUrl}', '_blank')">
-                        Voir la recette complète
-                    </button>
-                `;
-                
-                results.appendChild(card);
+            updateHistory();
+        }
+
+        function updateHistory() {
+            const historyList = document.getElementById('historyList');
+            historyList.innerHTML = '';
+            history.forEach(meal => {
+                const li = document.createElement('li');
+                li.textContent = meal;
+                historyList.appendChild(li);
             });
         }
 
-        // Sauvegarde de la clé API
-        document.getElementById('api-key').addEventListener('change', (e) => {
-            localStorage.setItem('spoonacular-api-key', e.target.value);
+        function addMeal() {
+            const newMealInput = document.getElementById('newMeal');
+            const mealName = newMealInput.value.trim();
+            
+            if (mealName && !meals.includes(mealName)) {
+                meals.push(mealName);
+                newMealInput.value = '';
+                updateMealsList();
+            }
+        }
+
+        function deleteMeal(index) {
+            meals.splice(index, 1);
+            updateMealsList();
+        }
+
+        function updateMealsList() {
+            const mealsList = document.getElementById('mealsList');
+            mealsList.innerHTML = '';
+            
+            meals.forEach((meal, index) => {
+                const div = document.createElement('div');
+                div.className = 'meal-item';
+                div.innerHTML = `
+                    <span>${meal}</span>
+                    <button class="delete-btn" onclick="deleteMeal(${index})">Supprimer</button>
+                `;
+                mealsList.appendChild(div);
+            });
+        }
+
+        // Ajout d'un gestionnaire d'événement pour la touche Entrée
+        document.getElementById('newMeal').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addMeal();
+            }
         });
+
+        // Afficher la liste initiale des repas
+        updateMealsList();
     </script>
 </body>
 </html>
