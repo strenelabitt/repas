@@ -1,15 +1,40 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Meal Picker</title>
+  <title>Choix de Repas</title>
   <style>
-    /* Votre CSS précédent */
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+    
+    h1 {
+      margin-bottom: 20px;
+    }
+    
+    button {
+      font-size: 16px;
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    #meal-display {
+      font-size: 24px;
+      font-weight: bold;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
-  <h1>Meal Picker</h1>
+  <h1>Choix de Repas</h1>
   
-  <button onclick="getRandomMeal()">Get Random Meal</button>
+  <button onclick="getRandomMeal()">Obtenir un repas aléatoire</button>
   
   <div id="meal-display"></div>
   
