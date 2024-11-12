@@ -1,53 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Choix de Repas</title>
+  <title>Choix de Repas Français</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 0;
-      padding: 20px;
-    }
-    
-    h1 {
-      margin-bottom: 20px;
-    }
-    
-    button {
-      font-size: 16px;
-      padding: 10px 20px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    
-    #meal-display {
-      font-size: 24px;
-      font-weight: bold;
-      margin-top: 20px;
-    }
+    /* Votre CSS précédent */
   </style>
 </head>
 <body>
-  <h1>Choix de Repas</h1>
+  <h1>Choix de Repas Français</h1>
   
-  <button onclick="getRandomMeal()">Obtenir un repas aléatoire</button>
+  <button onclick="getRandomFrenchMeal()">Obtenir un repas français aléatoire</button>
   
   <div id="meal-display"></div>
   
   <script>
-    function getRandomMeal() {
+    function getRandomFrenchMeal() {
       // Vérifier la connectivité internet avant de faire la requête
       if (!navigator.onLine) {
         document.getElementById('meal-display').textContent = "Vous n'êtes pas connecté à Internet.";
         return;
       }
 
-      // Essayer de récupérer un repas aléatoire depuis l'API TheMealDB
-      fetch('https://www.themealdb.com/api/json/v1/1/random.php')
+      // Récupérer un repas français aléatoire depuis l'API TheMealDB
+      fetch('https://www.themealdb.com/api/json/v1/1/filter.php?a=French')
         .then(response => {
           if (!response.ok) {
             throw new Error(`Erreur HTTP ${response.status}`);
@@ -55,8 +30,18 @@
           return response.json();
         })
         .then(data => {
-          const meal = data.meals[0];
-          document.getElementById('meal-display').textContent = meal.strMeal;
+          // Sélectionner un repas aléatoire dans la liste
+          const meals = data.meals;
+          const randomIndex = Math.floor(Math.random() * meals.length);
+          const selectedMeal = meals[randomIndex];
+
+          // Récupérer les détails du repas sélectionné
+          return fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${selectedMeal.idMeal}`)
+            .then(response => response.json())
+            .then(data => {
+              const meal = data.meals[0];
+              document.getElementById('meal-display').textContent = meal.strMeal;
+            });
         })
         .catch(error => {
           console.error('Erreur lors de la récupération du repas :', error);
